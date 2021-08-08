@@ -2,11 +2,10 @@ package controller
 
 import (
 	"Crud/database"
+	"fmt"
+
 	"Crud/entity"
 	"errors"
-
-	//"gorm-test/database"
-	//"gorm-test/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -19,11 +18,13 @@ type UserRepo struct {
 
 func New() *UserRepo {
 	db := database.InitDb()
+	//automigrate() will create tables,fix missing indexes.
 	db.AutoMigrate(&entity.User{})
 	return &UserRepo{Db: db}
 }
 
 //create user
+//gin context contains http.request and http/response
 func (repository *UserRepo) CreateUser(c *gin.Context) {
 	var user entity.User
 	c.BindJSON(&user)
@@ -32,6 +33,7 @@ func (repository *UserRepo) CreateUser(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
+	fmt.Println("user created successfully")
 	c.JSON(http.StatusOK, gin.H{"message": "User created successfully"})
 }
 
@@ -43,7 +45,8 @@ func (repository *UserRepo) GetUsers(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
-	c.JSON(http.StatusOK, user)
+	fmt.Println(user)
+	c.JSON(http.StatusOK, gin.H{"message": "listed all the users in table", "list": user})
 }
 
 //get user by id
@@ -57,11 +60,13 @@ func (repository *UserRepo) GetUser(c *gin.Context) {
 			return
 		}
 
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		//c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.JSON(http.StatusOK, gin.H{"message": "User not found"})
 		return
 	}
-	//c.JSON(http.StatusOK, user)
-	c.JSON(http.StatusOK, gin.H{"message": "User not found"})
+
+	c.JSON(http.StatusOK, user)
+
 }
 
 // update user
@@ -78,8 +83,10 @@ func (repository *UserRepo) UpdateUser(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
+	fmt.Println("user updated successfully")
 	c.BindJSON(&user)
-	err = entity.UpdateUser(repository.Db, &user)
+
+	err = entity.UpdateUser(repository.Db, &user, id)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return

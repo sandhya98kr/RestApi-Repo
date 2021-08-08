@@ -1,12 +1,14 @@
 package entity
 
 import (
+	//GORM is ORM library for dealing with relational databases,and it provides First,Take,Last methods
 	"gorm.io/gorm"
 )
 
+//creating a struct called User
 type User struct {
+	//which includes fields ID,CreatedAt,UpdatedAt,DeletedAt
 	gorm.Model
-	ID        int    `json:"id"`
 	FirstName string `json:"firstname"`
 	LastName  string `json:"lastname"`
 	Email     string `json:"email"`
@@ -14,6 +16,7 @@ type User struct {
 
 //create a user
 func CreateUser(db *gorm.DB, User *User) (err error) {
+	//if user is successfully created it returs nil or else it returs err
 	err = db.Create(User).Error
 	if err != nil {
 		return err
@@ -40,8 +43,9 @@ func GetUser(db *gorm.DB, User *User, id string) (err error) {
 }
 
 //update user
-func UpdateUser(db *gorm.DB, User *User) (err error) {
-	db.Save(User)
+func UpdateUser(db *gorm.DB, User *User, id string) (err error) {
+	db.Where("id = ?", id).Save(User)
+	//db.Save(User)
 	return nil
 }
 
